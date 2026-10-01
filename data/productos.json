@@ -1,0 +1,140 @@
+{
+  "productos": [
+    {
+      "id": "prod-001",
+      "nombre": "Lampara LED minimalista",
+      "descripcion": "Lampara de escritorio con temperatura regulable. Iluminacion suave y consumo reducido.",
+      "precio": 29990,
+      "precioComparacion": 39990,
+      "imagen": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imagenes": [
+        "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ],
+      "categoria": "iluminacion",
+      "etiquetas": [
+        "led",
+        "minimalista",
+        "oficina"
+      ],
+      "stock": 120,
+      "envioDias": 10,
+      "rating": 5,
+      "ventas": 432,
+      "proveedor": "local",
+      "sku": "LAM-001",
+      "urlOrigen": ""
+    },
+    {
+      "id": "prod-002",
+      "nombre": "Taza de ceramica mate",
+      "descripcion": "Taza resistente con acabado mate. Ideal para cafe o te. Lavable a mano o lavavajillas.",
+      "precio": 15990,
+      "precioComparacion": 19990,
+      "imagen": "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imagenes": [
+        "https://images.unsplash.com/photo-1547316326-2b64c31a59be?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+      ],
+      "categoria": "hogar",
+      "etiquetas": [
+        "ceramica",
+        "taza",
+        "regalo"
+      ],
+      "stock": 250,
+      "envioDias": 8,
+      "rating": 4,
+      "ventas": 312,
+      "proveedor": "local",
+      "sku": "TAZ-002",
+      "urlOrigen": ""
+    },
+    {
+      "id": "prod-003",
+      "nombre": "Funda para telefono transpirable",
+      "descripcion": "Funda slim con bordes elevados para proteger la camara y la pantalla. Agarre antideslizante.",
+      "precio": 24990,
+      "precioComparacion": null,
+      "imagen": "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imagenes": [],
+      "categoria": "accesorios",
+      "etiquetas": [
+        "movil",
+        "funda",
+        "slim"
+      ],
+      "stock": 180,
+      "envioDias": 7,
+      "rating": 5,
+      "ventas": 521,
+      "proveedor": "local",
+      "sku": "FUN-003",
+      "urlOrigen": ""
+    },
+    {
+      "id": "prod-004",
+      "nombre": "Bloc de notas A5 reciclado",
+      "descripcion": "Papel 100% reciclado de 80g. Encuadernacion cosida. Perfecto para ideas o bocetos.",
+      "precio": 14500,
+      "precioComparacion": 18990,
+      "imagen": "https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imagenes": [],
+      "categoria": "papeleria",
+      "etiquetas": [
+        "reciclado",
+        "notas",
+        "escritorio"
+      ],
+      "stock": 300,
+      "envioDias": 9,
+      "rating": 5,
+      "ventas": 276,
+      "proveedor": "local",
+      "sku": "BLO-004",
+      "urlOrigen": ""
+    },
+    {
+      "id": "prod-005",
+      "nombre": "Soporte para portatil aluminio",
+      "descripcion": "Soporte elevador ergonómico. Mejora la postura y la refrigeracion del equipo.",
+      "precio": 44990,
+      "precioComparacion": 54990,
+      "imagen": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imagenes": [],
+      "categoria": "oficina",
+      "etiquetas": [
+        "ergonomia",
+        "portatil",
+        "soporte"
+      ],
+      "stock": 90,
+      "envioDias": 12,
+      "rating": 5,
+      "ventas": 198,
+      "proveedor": "local",
+      "sku": "SOP-005",
+      "urlOrigen": ""
+    },
+    {
+      "id": "prod-006",
+      "nombre": "Botella acero inoxidable 750ml",
+      "descripcion": "Termica, mantiene frio o caliente hasta 12h. Sin BPA. Ideal para deporte o trabajo.",
+      "precio": 34990,
+      "precioComparacion": 39990,
+      "imagen": "https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imagenes": [],
+      "categoria": "deporte",
+      "etiquetas": [
+        "botella",
+        "acero",
+        "termica"
+      ],
+      "stock": 140,
+      "envioDias": 10,
+      "rating": 5,
+      "ventas": 368,
+      "proveedor": "local",
+      "sku": "BOT-006",
+      "urlOrigen": ""
+    }
+  ]
+}

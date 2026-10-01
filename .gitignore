@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+Thumbs.db
+.env
+.env.local
+.tmp/
+*.log
+
+# Secrets del Worker: nunca al repositorio.
+api/.dev.vars
+api/.env
+.wrangler/

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finalizar compra | Ascua</title>
+    <meta name="description" content="Completa tus datos para pagar con Mercado Pago o Flow." />
+    <link rel="stylesheet" href="assets/css/estilos.css" />
+  </head>
+  <body>
+    <a class="salto-enlace" href="#contenido">Saltar al contenido</a>
+
+    <header class="cabecera">
+      <div class="contenedor cabecera__interno">
+        <a class="marca" href="index.html">
+          <span class="marca__icono" aria-hidden="true">A</span>
+          <span class="marca__texto">
+            <strong>Ascua</strong>
+            <small>Checkout seguro</small>
+          </span>
+        </a>
+        <div class="cabecera__acciones">
+          <a class="boton boton--fantasma" href="index.html">Seguir comprando</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="contenedor">
+      <div class="checkout">
+        <section class="checkout__formulario">
+          <h1>Finalizar compra</h1>
+          <p class="checkout__intro">
+            Paga con Mercado Pago o Flow. El total se calcula en el servidor,
+            no en tu navegador.
+          </p>
+
+          <p class="aviso aviso--error" id="error-checkout" hidden></p>
+
+          <form id="form-checkout" novalidate>
+            <div class="campo">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="tu@correo.cl"
+              />
+              <small>Ahí te llega la confirmación y luego el seguimiento.</small>
+            </div>
+
+            <div class="campo">
+              <label for="nombre">Nombre completo</label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                required
+                autocomplete="name"
+                placeholder="Juan Pérez"
+              />
+            </div>
+
+            <div class="campo-fila">
+              <div class="campo">
+                <label for="telefono">Teléfono</label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  name="telefono"
+                  autocomplete="tel"
+                  placeholder="+56 9 1234 5678"
+                />
+                <small>Opcional, para avisos de entrega.</small>
+              </div>
+
+              <div class="campo">
+                <label for="documento">RUT</label>
+                <input
+                  type="text"
+                  id="documento"
+                  name="documento"
+                  placeholder="12.345.678-9"
+                />
+                <small>Opcional.</small>
+              </div>
+            </div>
+
+            <fieldset class="campo">
+              <legend>Método de pago</legend>
+              <label class="opcion">
+                <input type="radio" name="pasarela" value="mercadopago" checked />
+                <span>
+                  <strong>Mercado Pago</strong>
+                  <small>Tarjetas, Mercado Pago, y medios locales.</small>
+                </span>
+              </label>
+              <label class="opcion">
+                <input type="radio" name="pasarela" value="flow" />
+                <span>
+                  <strong>Flow</strong>
+                  <small>Tarjetas, Webpay, y pago en línea.</small>
+                </span>
+              </label>
+            </fieldset>
+
+            <button class="boton boton--primario boton--ancho" type="submit" id="btn-pagar">
+              Pagar
+            </button>
+            <p class="checkout__seguro">
+              Pagas en la pagina de la pasarela. Ascua nunca ve tu tarjeta.
+            </p>
+          </form>
+        </section>
+
+        <aside class="checkout__resumen">
+          <h2>Tu pedido</h2>
+          <ul class="resumen-lista" id="resumen-lista"></ul>
+          <div class="resumen-linea">
+            <span>Subtotal</span>
+            <strong id="resumen-subtotal">$0</strong>
+          </div>
+          <div class="resumen-linea">
+            <span>Envío</span>
+            <strong id="resumen-envio">$0</strong>
+          </div>
+          <div class="resumen-linea resumen-linea--total">
+            <span>Total</span>
+            <strong id="resumen-total">$0</strong>
+          </div>
+          <p class="resumen-nota">
+            Los productos se envían desde el proveedor. Plazo típico de 10 a 15 días.
+          </p>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="pie">
+      <div class="contenedor pie__interno">
+        <p>&copy; Ascua. Payments procesados por Mercado Pago y Flow.</p>
+      </div>
+    </footer>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/carrito.js"></script>
+    <script src="assets/js/checkout.js"></script>
+  </body>
+</html>

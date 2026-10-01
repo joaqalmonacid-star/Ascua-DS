@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ascua | Catalogo</title>
+    <meta
+      name="description"
+      content="Catalogo de productos con envio directo del proveedor. Busca, filtra y agrega al carrito."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="assets/css/estilos.css" />
+  </head>
+  <body>
+    <a class="salto-enlace" href="#contenido">Saltar al contenido</a>
+
+    <header class="cabecera">
+      <div class="contenedor cabecera__interno">
+        <a class="marca" href="index.html">
+          <span class="marca__icono" aria-hidden="true">A</span>
+          <span class="marca__texto">
+            <strong>Ascua</strong>
+            <small>Catalogo de productos</small>
+          </span>
+        </a>
+
+        <div class="cabecera__acciones">
+          <label class="buscador">
+            <span class="sr-only">Buscar productos</span>
+            <input
+              type="search"
+              id="buscador"
+              placeholder="Buscar producto..."
+              autocomplete="off"
+            />
+          </label>
+          <button class="boton boton--carrito" id="carrito-boton">
+            Carrito
+            <span class="contador" id="cantidad-carrito" hidden>0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido">
+      <section class="hero">
+        <div class="contenedor">
+          <h1>Productos que llegan antes de que te canses de buscarlos</h1>
+          <p>
+            Curamos un catalogo pequeno de articulos que realmente se venden,
+            enviados directo del proveedor a tu puerta.
+          </p>
+        </div>
+      </section>
+
+      <section class="contenedor catalogo">
+        <div class="catalogo__barra">
+          <div
+            class="catalogo__categorias"
+            id="filtro-categorias"
+            role="group"
+            aria-label="Filtrar por categoria"
+          ></div>
+
+          <label class="selector">
+            <span class="sr-only">Ordenar productos</span>
+            <select id="orden">
+              <option value="relevancia">Mas relevantes</option>
+              <option value="precio-asc">Precio: menor a mayor</option>
+              <option value="precio-desc">Precio: mayor a menor</option>
+              <option value="puntuacion">Mejor puntuados</option>
+              <option value="nombre">Nombre A-Z</option>
+            </select>
+          </label>
+        </div>
+
+        <p class="aviso" id="estado-catalogo" hidden></p>
+
+        <div class="rejilla" id="grid-productos"></div>
+
+        <div class="catalogo__mas">
+          <button class="boton boton--fantasma" id="cargar-mas" hidden>
+            Cargar mas productos
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="pie">
+      <div class="contenedor pie__interno">
+        <p>&copy; <span id="anio"></span> Ascua. Catalogo de demostracion.</p>
+        <p class="pie__nota">
+          Sin checkout activo. Para conectar pagos y proveedores, edita
+          <code>assets/js/config.js</code>.
+        </p>
+      </div>
+    </footer>
+
+    <div class="fondo-modal" id="carrito-fondo" hidden></div>
+
+    <aside
+      class="panel-carrito"
+      id="carrito-panel"
+      hidden
+      aria-label="Carrito de compra"
+    >
+      <header class="panel-carrito__cabecera">
+        <h2>Tu carrito</h2>
+        <button
+          class="boton boton--icono boton--cerrar"
+          id="carrito-cerrar"
+          aria-label="Cerrar carrito"
+        >
+          ×
+        </button>
+      </header>
+
+      <ul class="panel-carrito__lista" id="carrito-lista"></ul>
+
+      <p class="panel-carrito__vacio" id="carrito-vacio">
+        Tu carrito esta vacio.
+        <a href="index.html">Ver productos</a>
+      </p>
+
+      <footer class="panel-carrito__pie" id="carrito-pie" hidden>
+        <div class="subtotal">
+          <span>Subtotal</span>
+          <strong id="carrito-subtotal">$0.00</strong>
+        </div>
+        <p class="panel-carrito__aviso">Envio e impuestos se calculan al finalizar.</p>
+        <a class="boton boton--primario boton--ancho" href="checkout.html">
+          Finalizar compra
+        </a>
+        <button class="boton boton--enlace boton--ancho" id="carrito-vaciar">
+          Vaciar carrito
+        </button>
+      </footer>
+    </aside>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/carrito.js"></script>
+    <script src="assets/js/carrito-panel.js"></script>
+    <script>
+      document.getElementById("anio").textContent = new Date().getFullYear();
+    </script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>

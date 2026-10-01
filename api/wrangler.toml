@@ -1,0 +1,46 @@
+name = "ascua-api"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# Base de datos de pedidos y precios de referencia.
+[[d1_databases]]
+binding = "DB"
+database_name = "ascua"
+database_id = "REEMPLAZAR_CON_EL_ID_DE_TU_D1"
+
+[vars]
+# Origen del sitio, para CORS y para las URLs de retorno.
+ORIGEN = "http://localhost:5173"
+# Direccion de contacto del comprador (remitente).
+EMAIL_REMITENTE = "Ascua <hola@ascua.test>"
+EMAIL_NOTIFICACIONES = "hola@ascua.test"
+# Datos fiscales que aparecen en la factura.
+RAZON_SOCIAL = "Ascua"
+RUT = "PENDIENTE"
+DOMICILIO = "PENDIENTE"
+
+# Secrets (nunca van en este archivo):
+#   wrangler secret put MP_ACCESS_TOKEN
+#   wrangler secret put MP_WEBHOOK_SECRET
+#   wrangler secret put FLOW_API_KEY
+#   wrangler secret put FLOW_SECRET_KEY
+#   wrangler secret put RESEND_API_KEY
+#   wrangler secret put CLAVE_PANEL
+
+# Clima actual, para pruebas.
+[env.sandbox.vars]
+ORIGEN = "http://localhost:5173"
+EMAIL_REMITENTE = "Ascua <hola@ascua.test>"
+EMAIL_NOTIFICACIONES = "hola@ascua.test"
+RAZON_SOCIAL = "Ascua"
+RUT = "76.000.000-0"
+DOMICILIO = "Santiago, Chile"
+# Las claves de prueba de Mercado Pago y Flow.
+MP_ACCESS_TOKEN_SANDBOX = "APP_USR-TU_CLAVE_DE_PRUEBA"
+MP_WEBHOOK_SECRET = "TU_SECRETO_DE_PRUEBA"
+FLOW_API_KEY = "TU_API_KEY_DE_PRUEBA"
+FLOW_SECRET_KEY = "TU_SECRET_DE_PRUEBA"
+FLOW_API_KEY_SANDBOX = "TU_API_KEY_DE_PRUEBA"
+FLOW_SECRET_SANDBOX = "TU_SECRET_DE_PRUEBA"
+RESEND_API_KEY = "re_TU_CLAVE_DE_PRUEBA"
+CLAVE_PANEL = "prueba-local-1234"

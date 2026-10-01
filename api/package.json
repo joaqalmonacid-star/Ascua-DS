@@ -1,0 +1,18 @@
+{
+  "name": "ascua-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Worker de Ascua: checkout con Mercado Pago y Flow, webhooks verificados y registro de pedidos.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:crear": "wrangler d1 execute ascua --file=./schema.sql",
+    "db:seed": "wrangler d1 execute ascua --file=./seed.sql",
+    "db:local": "wrangler d1 execute ascua --local --file=./schema.sql",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

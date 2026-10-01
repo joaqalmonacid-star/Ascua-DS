@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pedidos | Ascua</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="stylesheet" href="assets/css/estilos.css" />
+  </head>
+  <body>
+    <header class="cabecera">
+      <div class="contenedor cabecera__interno">
+        <a class="marca" href="index.html">
+          <span class="marca__icono" aria-hidden="true">A</span>
+          <span class="marca__texto">
+            <strong>Ascua</strong>
+            <small>Panel de pedidos</small>
+          </span>
+        </a>
+      </div>
+    </header>
+
+    <main id="contenido" class="contenedor">
+      <div class="panel-pedidos">
+        <div class="panel-pedidos__cabecera">
+          <h1>Pedidos</h1>
+          <div class="panel-pedidos__controles">
+            <label class="campo">
+              <span class="sr-only">Clave del panel</span>
+              <input
+                type="password"
+                id="clave"
+                placeholder="Clave del panel"
+                autocomplete="current-password"
+              />
+            </label>
+            <label class="campo">
+              <span class="sr-only">Filtrar por estado</span>
+              <select id="filtro-estado">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="pagado">Pagados</option>
+                <option value="enviado">Enviados</option>
+              </select>
+            </label>
+            <button class="boton boton--primario" id="btn-cargar">Cargar</button>
+          </div>
+        </div>
+
+        <p class="aviso" id="aviso-panel" hidden></p>
+        <div id="lista-pedidos"></div>
+      </div>
+    </main>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/carrito.js"></script>
+    <script src="assets/js/panel.js"></script>
+  </body>
+</html>

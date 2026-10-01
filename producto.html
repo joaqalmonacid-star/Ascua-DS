@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Producto | Ascua</title>
+    <meta name="description" content="Ficha de producto con precio, envio y disponibilidad." />
+    <link rel="stylesheet" href="assets/css/estilos.css" />
+  </head>
+  <body>
+    <a class="salto-enlace" href="#contenido">Saltar al contenido</a>
+
+    <header class="cabecera">
+      <div class="contenedor cabecera__interno">
+        <a class="marca" href="index.html">
+          <span class="marca__icono" aria-hidden="true">A</span>
+          <span class="marca__texto">
+            <strong>Ascua</strong>
+            <small>Catalogo de productos</small>
+          </span>
+        </a>
+
+        <div class="cabecera__acciones">
+          <a class="boton boton--fantasma" href="index.html">Volver al catalogo</a>
+          <button class="boton boton--carrito" id="carrito-boton">
+            Carrito
+            <span class="contador" id="cantidad-carrito" hidden>0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="contenedor">
+      <div id="ficha" class="ficha-contenedor">
+        <p class="aviso">Cargando producto...</p>
+      </div>
+    </main>
+
+    <footer class="pie">
+      <div class="contenedor pie__interno">
+        <p>&copy; Ascua. Catalogo de demostracion.</p>
+      </div>
+    </footer>
+
+    <div class="fondo-modal" id="carrito-fondo" hidden></div>
+
+    <aside
+      class="panel-carrito"
+      id="carrito-panel"
+      hidden
+      aria-label="Carrito de compra"
+    >
+      <header class="panel-carrito__cabecera">
+        <h2>Tu carrito</h2>
+        <button
+          class="boton boton--icono boton--cerrar"
+          id="carrito-cerrar"
+          aria-label="Cerrar carrito"
+        >
+          &times;
+        </button>
+      </header>
+
+      <ul class="panel-carrito__lista" id="carrito-lista"></ul>
+
+      <p class="panel-carrito__vacio" id="carrito-vacio">
+        Tu carrito esta vacio.
+        <a href="index.html">Ver productos</a>
+      </p>
+
+      <footer class="panel-carrito__pie" id="carrito-pie" hidden>
+        <div class="subtotal">
+          <span>Subtotal</span>
+          <strong id="carrito-subtotal">$0.00</strong>
+        </div>
+        <p class="panel-carrito__aviso">Envio e impuestos se calculan al finalizar.</p>
+        <a class="boton boton--primario boton--ancho" href="checkout.html">
+          Finalizar compra
+        </a>
+        <button class="boton boton--enlace boton--ancho" id="carrito-vaciar">
+          Vaciar carrito
+        </button>
+      </footer>
+    </aside>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/carrito.js"></script>
+    <script src="assets/js/carrito-panel.js"></script>
+    <script src="assets/js/producto.js"></script>
+  </body>
+</html>
