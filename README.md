@@ -3,7 +3,7 @@
 Tienda de dropshipping para Chile. Catalogo estatico (HTML, CSS y JavaScript sin
 frameworks ni build) mas un Worker de Cloudflare que cobra con Mercado Pago y Flow.
 
-Los productos se cargan desde `data/productos.json`, que puede generarse desde la API
+Los productos se cargan desde `public/data/productos.json`, que puede generarse desde la API
 de un proveedor con `npm run sync`.
 
 ## Requisitos
@@ -25,44 +25,49 @@ Abre <http://localhost:5173>. No abras `index.html` con doble clic: la pagina ne
 ## Estructura
 
 ```
-tienda-dropshipping/
-├── index.html              Catalogo: hero, filtros, busqueda, orden, rejilla
-├── producto.html           Ficha de producto (lee ?id=)
-├── checkout.html           Datos del comprador y eleccion de pasarela
-├── gracias.html            Retorno del pago
-├── panel.html              Pedidos, aviso de envio y tracking
-├── assets/
-│   ├── css/estilos.css     Estilos unicos, con tokens al inicio
-│   └── js/
-│       ├── config.js       Configuracion de negocio, moneda y proveedores
-│       ├── ui.js           Helpers de presentacion (precio, escape, toast)
-│       ├── api.js          Capa de datos del cliente
-│       ├── carrito.js      Carrito en localStorage
-│       ├── carrito-panel.js  Panel lateral del carrito
-│       ├── app.js          Logica del catalogo
-│       ├── producto.js     Logica de la ficha
-│       ├── checkout.js     Envio del pedido al Worker
-│       ├── gracias.js      Estado tras el pago
-│       └── panel.js        Panel de pedidos
-├── data/productos.json     Catalogo que muestra la pagina
-├── scripts/
-│   ├── dev-server.mjs      Servidor estatico de desarrollo (sin dependencias)
-│   ├── preparar-sitio.mjs  Copia el sitio a dist/ para publicar
-│   ├── pruebas.mjs         Pruebas del sitio
-│   └── sync-productos.mjs  Trae productos de un proveedor
-└── api/                    Worker de Cloudflare (checkout, webhooks, D1)
-    └── README.md           Guia de puesta en marcha del checkout
+ascua/
+├── wrangler.toml            Config de deploy. Va en la raiz a proposito (ver Despliegue)
+├── public/                  El sitio, tal cual lo sirve Cloudflare
+│   ├── index.html           Catalogo: hero, filtros, busqueda, orden, rejilla
+│   ├── producto.html        Ficha de producto (lee ?id=)
+│   ├── checkout.html        Datos del comprador y eleccion de pasarela
+│   ├── gracias.html         Retorno del pago
+│   ├── panel.html           Pedidos, aviso de envio y tracking
+│   ├── _headers             Cabeceras de seguridad y cache (formato Cloudflare)
+│   ├── assets/
+│   │   ├── css/estilos.css  Estilos unicos, con tokens al inicio
+│   │   └── js/
+│   │       ├── config.js       Configuracion de negocio, moneda y proveedores
+│   │       ├── ui.js           Helpers de presentacion (precio, escape, toast)
+│   │       ├── api.js          Capa de datos del cliente
+│   │       ├── carrito.js      Carrito en localStorage
+│   │       ├── carrito-panel.js  Panel lateral del carrito
+│   │       ├── app.js          Logica del catalogo
+│   │       ├── producto.js     Logica de la ficha
+│   │       ├── checkout.js     Envio del pedido al Worker
+│   │       ├── gracias.js      Estado tras el pago
+│   │       └── panel.js        Panel de pedidos
+│   └── data/productos.json  Catalogo que muestra la pagina
+├── api/                     Worker de Cloudflare (checkout, webhooks, D1)
+│   ├── src/                 Codigo del Worker
+│   ├── schema.sql           Tablas de D1
+│   └── README.md            Guia de puesta en marcha del checkout
+└── scripts/                 Solo desarrollo, nunca se despliega
+    ├── dev-server.mjs       Servidor estatico (sin dependencias)
+    ├── pruebas.mjs          Pruebas del sitio
+    └── sync-productos.mjs   Trae productos de un proveedor
 ```
 
 ## Dónde cambiar las cosas
 
 | Necesitas cambiar | Edita |
 | --- | --- |
-| Nombre, moneda, email de la tienda | `assets/js/config.js` → `store` |
-| Cuántos productos se muestran por tanda | `assets/js/config.js` → `catalogo.productosPorPagina` (el botón "Cargar más" añade otra tanda) |
-| Cuánto dura la cache del navegador | `assets/js/config.js` → `catalogo.cacheMinutos` |
-| Colores, tipografia, radios | `assets/css/estilos.css` → bloque `:root` |
-| Productos | `data/productos.json` |
+| Nombre, moneda, email de la tienda | `public/assets/js/config.js` → `store` |
+| Cuántos productos se muestran por tanda | `public/assets/js/config.js` → `catalogo.productosPorPagina` (el botón "Cargar más" añade otra tanda) |
+| Cuánto dura la cache del navegador | `public/assets/js/config.js` → `catalogo.cacheMinutos` |
+| Colores, tipografia, radios | `public/assets/css/estilos.css` → bloque `:root` |
+| Productos | `public/data/productos.json` |
+| Precios que se cobran de verdad | tabla `productos` en D1, no el JSON |
 
 ## Conectar un proveedor (AliExpress, CJ, etc.)
 
@@ -78,10 +83,10 @@ $env:PROVEEDOR='aliexpress'
 $env:PROVEEDOR_KEY='tu-clave'
 $env:PROVEEDOR_LIMITE='50'
 npm run sync:dry     # vista previa, no escribe nada
-npm run sync         # escribe data/productos.json
+npm run sync         # escribe public/data/productos.json
 ```
 
-3. Revisa `data/productos.json` y recarga la pagina.
+3. Revisa `public/data/productos.json` y recarga la pagina.
 
 Si la respuesta del proveedor tiene una forma distinta a la esperada, ajusta la funcion
 `mapearAliExpress` o `mapearCJ` en `scripts/sync-productos.mjs`. Todos los campos que
@@ -118,27 +123,54 @@ producto mejorara al migrar a un generador estatico o a Next.js).
 
 ## Despliegue
 
-Un solo despliegue publica el sitio y la API, porque `api/wrangler.toml` declara
-`[assets] directory = "../dist"` y sirve las paginas estaticas desde el mismo Worker.
-El sitio y la API quedan en el mismo dominio, asi que no hay CORS ni dos URLs que
-mantener.
+Un solo despliegue publica el sitio y la API, porque `wrangler.toml` declara
+`[assets] directory = "./public"` y sirve las paginas estaticas desde el mismo
+Worker. El sitio y la API quedan en el mismo dominio, asi que no hay CORS ni dos
+URLs que mantener.
 
 ```bash
-node scripts/preparar-sitio.mjs     # copia el sitio a dist/
-cd api && npx wrangler deploy
+npx wrangler deploy
 ```
 
-Sigue sin haber build: `preparar-sitio.mjs` copia archivos, no compila. Existe
-porque Cloudflare sube **todo** lo que hay en el directorio de assets, y si ese
-directorio es la raiz del repositorio, el `node_modules/workerd` de 128 MB que crea
-la propia instalacion de wrangler acaba subido como si fuera del sitio y el deploy
-falla con `Asset too large`.
+Sin paso previo. Sigue sin haber build: no hay bundler, ni compilación, ni script
+de copia. `public/` se sube tal cual.
 
-Desde GitHub, el build command es
-`node scripts/preparar-sitio.mjs && cd api && npx wrangler deploy`. El `cd api` no es
-opcional. Ver `api/README.md` para el detalle.
+### Por qué `wrangler.toml` está en la raíz
+
+Cloudflare ejecuta el deploy desde la raíz del repositorio. Si no encuentra un
+`wrangler.toml` ahí, wrangler genera uno solo que toma **la raíz entera** como
+directorio de assets. Como el propio deploy instala wrangler, eso arrastra el
+`node_modules/workerd` de 128 MB y el deploy muere con:
+
+```
+✘ [ERROR] Asset too large.
+  file node_modules/workerd/bin/workerd with a size of 128 MiB
+```
+
+Poner el archivo en la raíz hace que `npx wrangler deploy` funcione sin configuración
+adicional, y `[assets] directory = "./public"` garantiza que a `public/` solo va lo
+que el navegador necesita. Es la diferencia entre 2.090 archivos y 18.
+
+### Configuración en el panel de Cloudflare
+
+Con el layout actual, los valores por defecto ya funcionan:
+
+| Campo | Valor |
+| --- | --- |
+| Build command | *(dejar vacío)* |
+| Deploy command | `npx wrangler deploy` |
+| Root directory | *(dejar vacío)* |
+
+No necesitas build command: el repositorio no tiene nada que compilar. Si alguna
+vez lo tuvieras, recuerda que `cd api` ya no hace falta, porque la configuración se
+lee desde la raíz.
+
+Lo que sí hay que revisar en el panel son las **Variables** y el **Binding** de D1,
+porque en los builds de Cloudflare no se leen del `wrangler.toml`. Ver
+`api/README.md`.
 
 Si prefieres el sitio en otro hosting (Netlify, Vercel, GitHub Pages, S3), sube el
-contenido de la raiz tal cual, incluyendo `data/`, y despliega solo el Worker desde
-`api/`. En ese caso pon `checkout.apiUrl` en `assets/js/config.js` con la URL del
-Worker, y `CORS_ORIGIN` en `wrangler.toml` con el dominio del sitio.
+contenido de `public/` tal cual y despliega solo el Worker con
+`npx wrangler deploy --assets=./nada`. En ese caso pon `checkout.apiUrl` en
+`public/assets/js/config.js` con la URL del Worker, y `CORS_ORIGIN` en
+`wrangler.toml` con el dominio del sitio.

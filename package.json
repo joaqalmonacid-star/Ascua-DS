@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node scripts/dev-server.mjs",
     "dev": "node scripts/dev-server.mjs",
-    "preparar": "node scripts/preparar-sitio.mjs",
     "sync": "node scripts/sync-productos.mjs",
     "sync:dry": "node scripts/sync-productos.mjs --dry",
     "test": "node scripts/pruebas.mjs",

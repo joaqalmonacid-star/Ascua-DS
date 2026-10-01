@@ -11,9 +11,11 @@ api/.dev.vars
 api/.env
 .wrangler/
 
-# Salida de `node scripts/preparar-sitio.mjs`. Se regenera en cada deploy.
-dist/
-
 # wrangler.jsonc lo genera wrangler si no encuentra wrangler.toml.
 wrangler.jsonc
 wrangler.json
+
+# El sitio ya vive en public/, que es lo que se sube. dist/ fue el directorio de
+# copia de una version anterior y no debe volver a comearse: si aparece, el deploy
+# esta usando la configuracion vieja.
+dist/

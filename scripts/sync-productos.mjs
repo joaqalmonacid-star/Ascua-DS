@@ -1,5 +1,6 @@
 /**
- * Sincroniza el catalogo desde un proveedor y lo guarda en data/productos.json.
+ * Sincroniza el catalogo desde un proveedor y lo guarda en
+ * public/data/productos.json.
  * La pagina estatica nunca llama APIs con credenciales: este script lo hace
  * en Node, en tu maquina, y la tienda solo consume el JSON resultante.
  *
@@ -20,7 +21,8 @@ import { dirname, join } from "node:path";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(aqui, "..");
-const DESTINO = join(RAIZ, "data", "productos.json");
+// El catalogo vive en public/ porque es lo que Cloudflare sube como assets.
+const DESTINO = join(RAIZ, "public", "data", "productos.json");
 
 const dry = process.argv.includes("--dry");
 
@@ -139,7 +141,7 @@ async function main() {
   const actual = await readFile(DESTINO, "utf8").catch(() => "{}");
   const salida = actual.trim().startsWith("[") ? productos : { productos };
   await writeFile(DESTINO, JSON.stringify(salida, null, 2) + "\n", "utf8");
-  console.log(`Guardado en data/productos.json (${productos.length} productos).`);
+  console.log(`Guardado en public/data/productos.json (${productos.length} productos).`);
 
   // El Worker cobra desde la tabla productos de D1. Si esto no se actualiza,
   // la pagina muestra un precio y el servidor cobra otro.
@@ -162,7 +164,7 @@ async function escribirSql(productos) {
 
   const sql =
     `-- Generado por scripts/sync-productos.mjs. No editar a mano.\n` +
-    `-- Cargar con:  cd api && npx wrangler d1 execute ascua --remote --file=./precios.sql\n` +
+    `-- Cargar con:  npm run precios --prefix api\n` +
     `DELETE FROM productos;\n` +
     `INSERT OR REPLACE INTO productos (id, nombre, precio, stock, sku, url_origen, activo)\n` +
     `VALUES\n${filas};\n`;
@@ -171,7 +173,7 @@ async function escribirSql(productos) {
   console.log(
     `Generado api/precios.sql (${productos.length} precios).\n` +
     `  Carga la tabla que usa el Worker con:\n` +
-    `    cd api && npx wrangler d1 execute ascua --remote --file=./precios.sql`
+    `    npm run precios --prefix api`
   );
 }
 

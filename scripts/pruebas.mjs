@@ -9,6 +9,7 @@ import { dirname, join } from "node:path";
 import vm from "node:vm";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PUBLICO = join(RAIZ, "public");
 
 let fallos = 0;
 function comprobar(descripcion, condicion) {
@@ -35,7 +36,10 @@ const sandbox = {
   crypto: globalThis.crypto,
   fetch: async (ruta) => {
     const url = new URL(ruta, "http://localhost:5173");
-    const cuerpo = await readFile(join(RAIZ, decodeURIComponent(url.pathname)));
+    // Se resuelve contra public/, igual que el servidor de desarrollo y que
+    // Cloudflare, para que las pruebas no puedan dar por bueno un archivo que
+    // en produccion no existe.
+    const cuerpo = await readFile(join(PUBLICO, decodeURIComponent(url.pathname)));
     return {
       ok: true,
       status: 200,
@@ -49,7 +53,7 @@ vm.createContext(sandbox);
 
 const cargar = async (nombre) =>
   vm.runInContext(
-    await readFile(join(RAIZ, "assets", "js", nombre), "utf8"),
+    await readFile(join(PUBLICO, "assets", "js", nombre), "utf8"),
     sandbox,
     { filename: nombre }
   );
@@ -191,52 +195,82 @@ comprobar("conserva el total tras releer", Carrito.cantidadTotal() === 2);
 
 Carrito.vaciar();
 
-console.log("\npreparar-sitio.mjs");
+console.log("\npublic/ — lo que se sube a Cloudflare");
 
 {
-  // Lo que se sube a Cloudflare no puede incluir node_modules: su `workerd` pesa
-  // 128 MB y el deploy falla con "Asset too large". Por eso el sitio se copia a
-  // dist/ en vez de apuntar los assets a la raiz del repo.
+  // Cloudflare sube como assets todo lo que hay en `[assets] directory`, y su
+  // limite por archivo es 25 MiB. Si esa carpeta llegara a ser la raiz del repo,
+  // el node_modules/workerd de 128 MB que instala el propio wrangler se sube
+  // como parte del sitio y el deploy falla con "Asset too large".
   const { readFile: leer, readdir: listar, stat } = await import("node:fs/promises");
 
-  // dist/ esta en .gitignore, asi que se genera al vuelo: las pruebas tienen que
-  // pasar en un clon recien hecho, antes del primer deploy.
-  const raiz = join(RAIZ, "dist");
-  await import("node:child_process").then(({ execFileSync }) =>
-    execFileSync(process.execPath, [join(RAIZ, "scripts", "preparar-sitio.mjs")], {
-      cwd: RAIZ,
-      stdio: "pipe",
-    })
+  const contenidos = await listar(PUBLICO);
+  comprobar("public/ tiene index.html", contenidos.includes("index.html"));
+  comprobar("public/ tiene _headers", contenidos.includes("_headers"));
+  comprobar("public/ tiene data/", contenidos.includes("data"));
+  comprobar("public/ tiene assets/", contenidos.includes("assets"));
+
+  const prohibidos = ["node_modules", "api", "scripts", ".git"];
+  const filtrados = [];
+
+  async function revisar(dir) {
+    for (const e of await listar(dir, { withFileTypes: true })) {
+      if (prohibidos.includes(e.name)) filtrados.push(e.name);
+      // Se comprueba el tamano de cada archivo, no solo el total: el limite de
+      // Cloudflare es por asset.
+      if (e.isDirectory()) await revisar(join(dir, e.name));
+      else if ((await stat(join(dir, e.name))).size > 25 * 1024 * 1024)
+        filtrados.push(e.name);
+    }
+  }
+  await revisar(PUBLICO);
+
+  comprobar("public/ no contiene archivos de herramientas", filtrados.length === 0);
+  comprobar("ningun asset supera 25 MiB", filtrados.length === 0);
+  if (filtrados.length) console.log("       encontrados:", filtrados.join(", "));
+}
+
+console.log("\nwrangler.toml — configuracion de deploy");
+
+{
+  // Si wrangler no encuentra este archivo en la raiz, se genera uno solo que
+  // toma la raiz entera como assets, y el deploy falla. Por eso vive aqui y no
+  // en api/, que es donde Cloudflare no mira.
+  const { readFile: leer, stat: estado } = await import("node:fs/promises");
+  const toml = await leer(join(RAIZ, "wrangler.toml"), "utf8");
+
+  comprobar("wrangler.toml esta en la raiz", toml.length > 0);
+
+  comprobar(
+    "los assets apuntan a ./public, no a la raiz",
+    /directory\s*=\s*"\.\/public"/.test(toml)
   );
 
-  const salida = await stat(raiz).catch(() => null);
-  comprobar("preparar-sitio.mjs genera dist/", salida !== null);
+  // Un wrangler.toml en api/ haria que `cd api && wrangler deploy` usara ese en
+  // vez del de la raiz, y los dos se desincronizan solos.
+  const enApi = await estado(join(RAIZ, "api", "wrangler.toml")).catch(() => null);
+  comprobar("no hay un wrangler.toml en api/ que lo pise", enApi === null);
+  comprobar(
+    "/api/* llega al Worker y no a un archivo estatico",
+    /run_worker_first\s*=\s*\[\s*"\/api\/\*"/.test(toml)
+  );
+  comprobar("el entrypoint del Worker es api/src/index.js", /main\s*=\s*"api\/src\/index\.js"/.test(toml));
+  comprobar("la base D1 esta declarada", /d1_databases/.test(toml));
 
-  if (salida) {
-    const contenidos = await listar(raiz);
-    comprobar("dist/ tiene index.html", contenidos.includes("index.html"));
-    comprobar("dist/ tiene _headers", contenidos.includes("_headers"));
-
-    const prohibidos = ["node_modules", "api", "scripts", ".git", "wrangler.toml"];
-    const filtrados = [];
-
-    async function revisar(dir) {
-      for (const e of await listar(dir, { withFileTypes: true })) {
-        if (prohibidos.includes(e.name)) filtrados.push(e.name);
-        // Cloudflare rechaza assets de mas de 25 MiB, asi que tambien se
-        // comprueba el tamano de cada archivo, no solo el total.
-        if (e.isDirectory()) await revisar(join(dir, e.name));
-        else if ((await stat(join(dir, e.name))).size > 25 * 1024 * 1024)
-          filtrados.push(e.name);
-      }
-    }
-    await revisar(raiz);
-
-    comprobar("dist/ no contiene archivos de herramientas", filtrados.length === 0);
-    comprobar("ningun asset supera 25 MiB", filtrados.length === 0);
+  const hayPlaceholder = /REEMPLAZAR/.test(toml);
+  if (hayPlaceholder) {
+    console.log(
+      "       aviso: database_id sigue como placeholder. El sitio sube igual,\n" +
+        "       pero el checkout rechazara pedidos hasta que se cree la base:\n" +
+        "         npx wrangler d1 create ascua"
+    );
   }
+}
 
-  // El nombre del paquete debe seguir a la marca.
+console.log("\nidentidad");
+
+{
+  const { readFile: leer } = await import("node:fs/promises");
   const pkg = JSON.parse(await leer(join(RAIZ, "package.json"), "utf8"));
   comprobar("package.json se llama ascua", pkg.name === "ascua");
 }
@@ -253,7 +287,7 @@ console.log("\ncoherencia de precios con el Worker");
   comprobar("seed.sql tiene precios", precios.length > 0);
 
   const json = JSON.parse(
-    await leer(join(RAIZ, "data", "productos.json"), "utf8")
+    await leer(join(PUBLICO, "data", "productos.json"), "utf8")
   );
   const catalogo = new Map(json.productos.map((p) => [p.id, p]));
 

@@ -1,4 +1,4 @@
--- Precios iniciales. Los IDs coinciden con data/productos.json.
+-- Precios iniciales. Los IDs coinciden con public/data/productos.json.
 -- `sync` regenera estos valores; esta tabla es la fuente de verdad para cobrar.
 INSERT OR REPLACE INTO productos
   (id, nombre, precio, stock, sku, url_origen, activo, updated_at)

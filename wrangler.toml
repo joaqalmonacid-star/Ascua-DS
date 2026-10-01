@@ -1,18 +1,24 @@
-name = "ascua-api"
-main = "src/index.js"
+name = "ascua"
+main = "api/src/index.js"
 compatibility_date = "2024-11-01"
 
-# Un solo despliegue sirve las dos cosas: las paginas estaticas y la API.
-# `dist/` lo genera `node scripts/preparar-sitio.mjs` y contiene solo el sitio.
-# Nunca apuntes `directory` a la raiz del repo: subiria node_modules y el deploy
+# Este archivo esta en la RAIZ a proposito.
+#
+# Cloudflare ejecuta el deploy desde la raiz del repositorio, y si wrangler no
+# encuentra un wrangler.toml aqui, se genera uno que toma la raiz entera como
+# directorio de assets. Eso sube el node_modules/workerd de 128 MB y el deploy
 # falla con "Asset too large".
+#
+# Que este en la raiz hace que `npx wrangler deploy` funcione sin paso previo:
+# no hace falta preparar nada, ni build command, ni script de copia.
 [assets]
-directory = "../dist"
+directory = "./public"
 # Sin esto, /api/* se buscaria como archivo y devolveria 404 en vez de llegar
 # al Worker.
 run_worker_first = ["/api/*"]
 
-# Base de datos de pedidos y precios de referencia.
+# Base de datos de pedidos y precios de referencia. El Worker cobra desde esta
+# tabla, nunca desde public/data/productos.json.
 [[d1_databases]]
 binding = "DB"
 database_name = "ascua"

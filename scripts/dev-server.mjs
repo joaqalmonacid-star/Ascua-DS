@@ -3,6 +3,10 @@
  * HTML plano y solo necesita servir archivos con los tipos MIME correctos.
  *
  *   node scripts/dev-server.mjs [puerto]
+ *
+ * Sirve `public/`, que es el mismo directorio que Cloudflare sube como assets.
+ * Servir exactamente lo que se despliega evita que se developa algo que
+ * despues no exista en produccion.
  */
 
 import { createServer } from "node:http";
@@ -11,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname, sep } from "node:path";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PUBLICO = join(RAIZ, "public");
 const PUERTO = Number(process.argv[2] || process.env.PORT || 5173);
 
 const TIPOS = {
@@ -36,9 +41,9 @@ const servidor = createServer(async (req, res) => {
     let ruta = decodeURIComponent(url.pathname);
     if (ruta.endsWith("/")) ruta += "index.html";
 
-    // Impide salir de la raiz del proyecto (..\..\etc\passwd).
-    const destino = join(RAIZ, normalize(ruta).replace(/^([/\\])+/, ""));
-    if (!destino.startsWith(RAIZ + sep) && destino !== RAIZ) {
+    // Impide salir de public/ (..\..\etc\passwd).
+    const destino = join(PUBLICO, normalize(ruta).replace(/^([/\\])+/, ""));
+    if (!destino.startsWith(PUBLICO + sep) && destino !== PUBLICO) {
       res.writeHead(403).end("403 Prohibido");
       return;
     }
@@ -54,7 +59,7 @@ const servidor = createServer(async (req, res) => {
     res.writeHead(200, {
       "content-type": TIPOS[extname(destino).toLowerCase()] || "application/octet-stream",
       "cache-control": "no-cache",
-      // Basicas de seguridad. Las de produccion van en dist/_headers.
+      // Basicas de seguridad. Las de produccion van en public/_headers.
       "x-content-type-options": "nosniff",
       "x-frame-options": "DENY",
       "referrer-policy": "strict-origin-when-cross-origin",

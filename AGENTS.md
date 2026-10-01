@@ -15,29 +15,32 @@ desarrollar, mantener— ocurre aqui.
 ## Estructura en dos partes
 
 ```
-raiz/     sitio estatico: HTML, CSS, JS de cliente, data/productos.json
-dist/     copia del sitio que se sube a Cloudflare (la genera scripts/preparar-sitio.mjs)
+raiz/     wrangler.toml (config de deploy, debe estar en la raiz)
+public/   sitio estatico: HTML, CSS, JS de cliente, data/productos.json
 api/      Cloudflare Worker: checkout, webhooks, emails, D1
+scripts/  herramientas de desarrollo (no se despliegan)
 ```
 
-El Worker es la unica autoridad sobre el precio. `data/productos.json` es lo que el
+El Worker es la unica autoridad sobre el precio. `public/data/productos.json` es lo que el
 navegador muestra; la tabla `productos` en D1 es lo que se cobra. Si divergen, el
 cliente ve una cifra y paga otra. `npm test` verifica que coincidan, asi que si
 cambias precios, cambialos en los dos lados o regenera `api/precios.sql` con `npm run sync`.
+   `wrangler.toml` esta en la raiz porque es donde Cloudflare busca la configuracion.
 
 ## Comandos
 
 ```bash
-npm start          # sitio estatico en http://localhost:5173
-npm test           # sitio: datos, carrito, helpers, coherencia de precios, dist/
+npm start          # sitio estatico en http://localhost:5173 (sirve public/)
+npm test           # sitio: datos, carrito, helpers, coherencia de precios, public/
 npm run test:api   # Worker: firmas, calculo de total, webhooks, idempotencia
-npm run preparar   # copia el sitio a dist/ para desplegar
 npm run sync:dry   # trae productos del proveedor y los muestra, sin escribir
-npm run sync       # idem y escribe data/productos.json + api/precios.sql
+npm run sync       # idem y escribe public/data/productos.json + api/precios.sql
 ```
 
 En `api/`: `npx wrangler dev` levanta el Worker en 8787, y
-`npx wrangler d1 execute ascua --local --file=./schema.sql` crea la base local.
+`npx wrangler d1 execute ascua --config ../wrangler.toml --local --file=./schema.sql`
+crea la base local. Todos los comandos de wrangler llevan `--config ../wrangler.toml`
+porque la configuracion vive en la raiz, no en `api/`.
 
 Para `sync` hacen falta variables de entorno: `PROVEEDOR`, `PROVEEDOR_KEY`,
 `PROVEEDOR_URL` opcional, `PROVEEDOR_LIMITE` opcional.
@@ -65,7 +68,7 @@ No son preferencias: son la linea entre cobrar y regalar el producto.
 
 ## Reglas de arquitectura
 
-1. **La capa de datos es `assets/js/api.js` y nadie mas.** Si una funcion nueva
+1. **La capa de datos es `public/assets/js/api.js` y nadie mas.** Si una funcion nueva
    necesita saber de donde viene un producto, va ahi. El resto de la tienda consume
    `TiendaAPI.obtenerCatalogo()` y trabaja con objetos ya normalizados. Nunca llames
    APIs con credenciales desde el navegador.
@@ -76,16 +79,17 @@ No son preferencias: son la linea entre cobrar y regalar el producto.
 3. **Sin innerHTML con datos sin escapar.** Todo texto que venga del catalogo pasa
    por `UI.escapar`. Las URLs de imagen pasan por `UI.imagenSegura`, que rechaza
    `javascript:` y rutas sospechosas. Si agregas un campo nuevo al render, cuidalo.
-4. **Estilos en una sola hoja.** `assets/css/estilos.css`, con los valores de color y
+4. **Estilos en una sola hoja.** `public/assets/css/estilos.css`, con los valores de color y
    espaciado como tokens en `:root`. No anadas hojas nuevas ni frameworks de CSS.
 5. **Sin build.** Si el proyecto necesita un paso de compilacion para funcionar,
    la solucion esta equivocada. El sitio se sube a hosting tal cual.
-6. **Nunca apuntes `[assets]` a la raiz del repo.** Cloudflare sube todo lo que
-   encuentra ahi, incluido el `node_modules/workerd` de 128 MB que crea la propia
-   instalacion de wrangler, y el deploy falla con `Asset too large`. El directorio
-   de assets es `dist/`, que genera `scripts/preparar-sitio.mjs`. Si agregas una
-   carpeta nueva al sitio, agregala a la lista `COPIAR` de ese script y a las
-   pruebas que verifican que `dist/` no arrastre archivos de herramientas.
+6. **`wrangler.toml` vive en la raiz, no en `api/`.** Cloudflare ejecuta el deploy
+   desde la raiz del repositorio. Si el archivo no esta ahi, wrangler se genera uno
+   solo que toma la raiz entera como directorio de assets, sube el
+   `node_modules/workerd` de 128 MB que el propio wrangler instala, y el deploy
+   falla con `Asset too large`. `[assets] directory` apunta a `./public`, que solo
+   contiene el sitio. Si agregas una carpeta nueva al sitio, va dentro de `public/`
+   y a las pruebas que verifican que no se colen archivos de herramientas.
 
 ## Convenciones
 
@@ -103,7 +107,7 @@ No son preferencias: son la linea entre cobrar y regalar el producto.
 - Corre `npm test` y `npm run test:api`. Si algo falla, eso va primero.
 - Abre la pagina con `npm start` y confirma que el catalogo carga, que los filtros y
   la busqueda responden, y que agregar al carrito actualiza el contador.
-- Si tocaste `data/productos.json` o la capa de datos, prueba tambien `producto.html`.
+- Si tocaste `public/data/productos.json` o la capa de datos, prueba tambien `producto.html`.
 - Si tocaste precios, revisa que `npm test` siga diciendo que coinciden con D1.
 - Si agregaste campos al modelo de producto, actualiza la lista de campos en
   `README.md` y en `scripts/sync-productos.mjs`.

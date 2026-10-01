@@ -5,13 +5,13 @@
   "type": "module",
   "description": "Worker de Ascua: checkout con Mercado Pago y Flow, webhooks verificados y registro de pedidos.",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "db:crear": "wrangler d1 execute ascua --file=./schema.sql",
-    "db:seed": "wrangler d1 execute ascua --file=./seed.sql",
-    "db:local": "wrangler d1 execute ascua --local --file=./schema.sql",
-    "precios": "wrangler d1 execute ascua --remote --file=./precios.sql",
-    "tail": "wrangler tail"
+    "dev": "wrangler dev --config ../wrangler.toml",
+    "deploy": "wrangler deploy --config ../wrangler.toml",
+    "db:crear": "wrangler d1 execute ascua --config ../wrangler.toml --file=./schema.sql",
+    "db:seed": "wrangler d1 execute ascua --config ../wrangler.toml --file=./seed.sql",
+    "db:local": "wrangler d1 execute ascua --config ../wrangler.toml --local --file=./schema.sql",
+    "precios": "wrangler d1 execute ascua --config ../wrangler.toml --remote --file=./precios.sql",
+    "tail": "wrangler tail --config ../wrangler.toml"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
