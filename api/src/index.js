@@ -20,23 +20,33 @@ import * as mp from "./mercado-pago.js";
 import * as flow from "./flow.js";
 import { avisarPedido } from "./email.js";
 
-const json = (cuerpo, status = 200, headers = {}) =>
-  new Response(JSON.stringify(cuerpo), {
+/**
+ * El sitio y la API comparten dominio, asi que el navegador no pide CORS: no se
+ * envia ninguna cabecera de acceso cruzado. Solo hace falta si algun dia el
+ * sitio se sirve desde otro dominio, y entonces se limita a ese origen en vez
+ * de abrirlo a cualquiera.
+ */
+function cors(env) {
+  const origen = env?.CORS_ORIGIN;
+  if (!origen) return {};
+  return {
+    "access-control-allow-origin": origen,
+    "access-control-allow-headers": "content-type, authorization",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    vary: "origin",
+  };
+}
+
+function json(env, cuerpo, status = 200, cabeceras = {}) {
+  return new Response(JSON.stringify(cuerpo), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "access-control-allow-origin": "*",
-      "access-control-allow-headers": "content-type",
-      "access-control-allow-methods": "GET,POST,OPTIONS",
-      ...headers,
+      ...cors(env),
+      ...cabeceras,
     },
   });
-
-const CORS = {
-  origin: "*",
-  headers: { "content-type": "authorization" },
-  method: "GET,POST,OPTIONS",
-};
+}
 
 const MAX_ITEMS = 30;
 const MAX_UNIDADES = 20;
@@ -45,7 +55,7 @@ const ENVIO_FIJO = 3990; // CLP
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: CORS });
+      return new Response(null, { status: 204, headers: cors(env) });
     }
 
     const url = new URL(request.url);
@@ -65,10 +75,10 @@ export default {
       if (ruta === "/api/pedidos" && request.method === "GET")
         return listarPedidos(request, env, url);
 
-      return json({ error: "Ruta no encontrada" }, 404);
+      return json(env, { error: "Ruta no encontrada" }, 404);
     } catch (e) {
       console.error("error no controlado:", e);
-      return json({ error: "Error interno" }, 500);
+      return json(env, { error: "Error interno" }, 500);
     }
   },
 };
@@ -79,16 +89,16 @@ export default {
 
 async function checkout(request, env, url) {
   const cuerpo = await request.json().catch(() => null);
-  if (!cuerpo) return json({ error: "Cuerpo JSON invalido" }, 400);
+  if (!cuerpo) return json(env, { error: "Cuerpo JSON invalido" }, 400);
 
   const items = Array.isArray(cuerpo.items) ? cuerpo.items : [];
-  if (items.length === 0) return json({ error: "Carrito vacio" }, 400);
+  if (items.length === 0) return json(env, { error: "Carrito vacio" }, 400);
   if (items.length > MAX_ITEMS)
-    return json({ error: `Maximo ${MAX_ITEMS} productos por pedido` }, 400);
+    return json(env, { error: `Maximo ${MAX_ITEMS} productos por pedido` }, 400);
 
   const email = String(cuerpo.email ?? "").trim();
   if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email)) {
-    return json({ error: "Email invalido" }, 400);
+    return json(env, { error: "Email invalido" }, 400);
   }
 
   const sandbox = cuerpo.sandbox === true;
@@ -137,7 +147,7 @@ async function checkout(request, env, url) {
   }
 
   if (problemas.length > 0) {
-    return json({ error: "Carrito invalido", detalles: problemas }, 400);
+    return json(env, { error: "Carrito invalido", detalles: problemas }, 400);
   }
 
   const envio = cuerpo.envioGratis === true || total >= 30000 ? 0 : ENVIO_FIJO;
@@ -169,19 +179,19 @@ async function checkout(request, env, url) {
       });
       const link = r.url || r.response?.url;
       if (!link) throw new Error("Flow no devolvio URL de pago");
-      return json({ pedidoId: pedido.id, url: link, ...resumenPago(pedido), sandbox });
+      return json(env, { pedidoId: pedido.id, url: link, ...resumenPago(pedido), sandbox });
     }
 
     const token = sandbox ? env.MP_ACCESS_TOKEN_SANDBOX : env.MP_ACCESS_TOKEN;
     const pref = await mp.crearPreferencia({ token, pedido, origen });
     const link = (sandbox ? pref.sandbox_init_point : pref.init_point) || pref.init_point;
     if (!link) throw new Error("Mercado Pago no devolvio init_point");
-    return json({ pedidoId: pedido.id, url: link, ...resumenPago(pedido), sandbox });
+    return json(env, { pedidoId: pedido.id, url: link, ...resumenPago(pedido), sandbox });
   } catch (e) {
     // El pedido queda registrado para que puedas revisar, pero el cliente ve
     // un error generico: nunca le exponemos el detalle de la pasarela.
     console.error("checkout fallido:", e.message);
-    return json(
+    return json(env, 
       { error: "No pudimos iniciar el pago. Intenta de nuevo en un momento.", pedidoId: pedido.id },
       502
     );
@@ -210,14 +220,14 @@ async function webhookMP(request, env, url) {
   );
   if (!verificacion.ok) {
     console.warn("webhook MP rechazado:", verificacion.motivo);
-    return json({ error: "Firma invalida" }, 401);
+    return json(env, { error: "Firma invalida" }, 401);
   }
 
   let datos;
   try {
     datos = JSON.parse(cuerpoTexto);
   } catch (e) {
-    return json({ error: "Cuerpo invalido" }, 400);
+    return json(env, { error: "Cuerpo invalido" }, 400);
   }
 
   // MP manda dos tipos: notificacion de pago e informacion de la preferencia.
@@ -226,7 +236,7 @@ async function webhookMP(request, env, url) {
   } else if (datos.type === "preference") {
     await procesarPreferenciaMP(datos.data?.id, env);
   }
-  return json({ recibido: true });
+  return json(env, { recibido: true });
 }
 
 async function procesarPagoMP(idPago, env) {
@@ -261,22 +271,22 @@ async function webhookFlow(request, env, url) {
   const verificacion = await verificarFlow(request, cuerpoTexto, env.FLOW_SECRET_KEY);
   if (!verificacion.ok) {
     console.warn("webhook Flow rechazado:", verificacion.motivo);
-    return json({ error: "Firma invalida" }, 401);
+    return json(env, { error: "Firma invalida" }, 401);
   }
 
   let datos;
   try {
     datos = JSON.parse(cuerpoTexto);
   } catch (e) {
-    return json({ error: "Cuerpo invalido" }, 400);
+    return json(env, { error: "Cuerpo invalido" }, 400);
   }
 
   // Flow manda commerceOrder con el id interno del pedido.
   const pedidoId = String(datos.commerceOrder ?? datos.flowOrder ?? "");
-  if (!pedidoId) return json({ error: "Sin commerceOrder" }, 400);
+  if (!pedidoId) return json(env, { error: "Sin commerceOrder" }, 400);
   if (datos.status !== "paid" && datos.status !== "completed") {
     console.log(`Flow pedido ${pedidoId} en estado ${datos.status}`);
-    return json({ recibido: true });
+    return json(env, { recibido: true });
   }
   await finalizarPedido("flow", pedidoId, datos.flowOrder ?? null, env, { flow: datos });
 }
@@ -338,24 +348,24 @@ function autorizado(request, env) {
 }
 
 async function listarPedidos(request, env, url) {
-  if (!autorizado(request, env)) return json({ error: "No autorizado" }, 401);
+  if (!autorizado(request, env)) return json(env, { error: "No autorizado" }, 401);
   const pedidos = await db.listarPedidos(env.DB, {
     estado: url.searchParams.get("estado") || undefined,
     limite: url.searchParams.get("limite") || 50,
   });
-  return json({
+  return json(env, {
     pedidos: pedidos.map((p) => ({ ...p, items: JSON.parse(p.items) })),
   });
 }
 
 async function registrarTracking(request, env, id) {
-  if (!autorizado(request, env)) return json({ error: "No autorizado" }, 401);
+  if (!autorizado(request, env)) return json(env, { error: "No autorizado" }, 401);
   const cuerpo = await request.json().catch(() => ({}));
   await db.marcarEnviado(env.DB, id, {
     proveedor: cuerpo.proveedor ?? null,
     cliente: cuerpo.cliente ?? null,
   });
-  return json({ ok: true });
+  return json(env, { ok: true });
 }
 
 /* ------------------------------------------------------------------ */
@@ -368,7 +378,7 @@ function salud(env) {
   if (!env.FLOW_SECRET_KEY) faltantes.push("FLOW_SECRET_KEY");
   if (!env.CLAVE_PANEL) faltantes.push("CLAVE_PANEL");
   if (!env.DB) faltantes.push("DB");
-  return json({
+  return json(env, {
     ok: faltantes.length === 0,
     faltantes,
     moneda: "CLP",

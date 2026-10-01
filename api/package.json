@@ -10,9 +10,10 @@
     "db:crear": "wrangler d1 execute ascua --file=./schema.sql",
     "db:seed": "wrangler d1 execute ascua --file=./seed.sql",
     "db:local": "wrangler d1 execute ascua --local --file=./schema.sql",
+    "precios": "wrangler d1 execute ascua --remote --file=./precios.sql",
     "tail": "wrangler tail"
   },
   "devDependencies": {
-    "wrangler": "^3.90.0"
+    "wrangler": "^4.0.0"
   }
 }

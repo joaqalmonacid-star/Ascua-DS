@@ -15,10 +15,13 @@ window.CONFIG = {
   },
 
   checkout: {
-    // URL del Worker. En local: http://127.0.0.1:8787
-    apiUrl: "http://127.0.0.1:8787",
+    // Vacio = mismo origen. En produccion el Worker y el sitio se sirven desde
+    // el mismo dominio, asi que basta con las rutas relativas.
+    // En local, pon "http://127.0.0.1:8787" y levanta el Worker aparte.
+    apiUrl: "",
     pasarelaPorDefecto: "mercadopago",
-    // Cambia a false cuando tengas credenciales de produccion.
+    // true = credenciales de prueba de Mercado Pago y Flow.
+    // Ponlo en false cuando cargues las de produccion.
     sandbox: true,
     envioGratisDesde: 30000,
     envioFijo: 3990,

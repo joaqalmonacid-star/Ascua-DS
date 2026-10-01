@@ -16,6 +16,7 @@ desarrollar, mantener— ocurre aqui.
 
 ```
 raiz/     sitio estatico: HTML, CSS, JS de cliente, data/productos.json
+dist/     copia del sitio que se sube a Cloudflare (la genera scripts/preparar-sitio.mjs)
 api/      Cloudflare Worker: checkout, webhooks, emails, D1
 ```
 
@@ -28,8 +29,9 @@ cambias precios, cambialos en los dos lados o regenera `api/precios.sql` con `np
 
 ```bash
 npm start          # sitio estatico en http://localhost:5173
-npm test           # sitio: datos, carrito, helpers, coherencia de precios
+npm test           # sitio: datos, carrito, helpers, coherencia de precios, dist/
 npm run test:api   # Worker: firmas, calculo de total, webhooks, idempotencia
+npm run preparar   # copia el sitio a dist/ para desplegar
 npm run sync:dry   # trae productos del proveedor y los muestra, sin escribir
 npm run sync       # idem y escribe data/productos.json + api/precios.sql
 ```
@@ -57,6 +59,9 @@ No son preferencias: son la linea entre cobrar y regalar el producto.
 5. **Las claves van como secrets de wrangler, nunca en `[vars]`.** Usa
    `wrangler secret put`.
 6. **No filtres datos de la pasarela al cliente.** Ante error, mensaje generico.
+7. **No abras CORS con comodin.** El sitio y la API comparten dominio, asi que no
+   hacen falta cabeceras de acceso cruzado. `cors()` en `api/src/index.js` solo
+   responde si hay `CORS_ORIGIN`, y entonces solo a ese origen.
 
 ## Reglas de arquitectura
 
@@ -75,6 +80,12 @@ No son preferencias: son la linea entre cobrar y regalar el producto.
    espaciado como tokens en `:root`. No anadas hojas nuevas ni frameworks de CSS.
 5. **Sin build.** Si el proyecto necesita un paso de compilacion para funcionar,
    la solucion esta equivocada. El sitio se sube a hosting tal cual.
+6. **Nunca apuntes `[assets]` a la raiz del repo.** Cloudflare sube todo lo que
+   encuentra ahi, incluido el `node_modules/workerd` de 128 MB que crea la propia
+   instalacion de wrangler, y el deploy falla con `Asset too large`. El directorio
+   de assets es `dist/`, que genera `scripts/preparar-sitio.mjs`. Si agregas una
+   carpeta nueva al sitio, agregala a la lista `COPIAR` de ese script y a las
+   pruebas que verifican que `dist/` no arrastre archivos de herramientas.
 
 ## Convenciones
 

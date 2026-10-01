@@ -391,6 +391,45 @@ console.log("\nindex.js — rutas y CORS");
   comprobar("responde a OPTIONS (CORS)", options.status === 204);
 }
 
+console.log("\nindex.js — CORS solo si se configura");
+
+{
+  const { db } = dbFalsa();
+  ENV.DB = db;
+
+  // Mismo origen: no debe mandarse ninguna cabecera de acceso cruzado.
+  const normal = await worker.fetch(
+    req("https://api.test/api/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ items: [], email: "a@b.cl" }),
+    }),
+    ENV, {}
+  );
+  comprobar(
+    "sin CORS_ORIGIN no envia allow-origin",
+    normal.headers.get("access-control-allow-origin") === null
+  );
+
+  // Con origen configurado, solo ese, nunca el comodin.
+  const conOrigen = await worker.fetch(
+    req("https://api.test/api/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ items: [], email: "a@b.cl" }),
+    }),
+    { ...ENV, CORS_ORIGIN: "https://ascua.cl" }, {}
+  );
+  comprobar(
+    "con CORS_ORIGIN envia ese origen",
+    conOrigen.headers.get("access-control-allow-origin") === "https://ascua.cl"
+  );
+  comprobar(
+    "nunca envia el comodin",
+    conOrigen.headers.get("access-control-allow-origin") !== "*"
+  );
+}
+
 console.log("\npedidos.js — idempotencia");
 
 {

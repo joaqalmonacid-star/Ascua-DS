@@ -2,14 +2,27 @@ name = "ascua-api"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
 
+# Un solo despliegue sirve las dos cosas: las paginas estaticas y la API.
+# `dist/` lo genera `node scripts/preparar-sitio.mjs` y contiene solo el sitio.
+# Nunca apuntes `directory` a la raiz del repo: subiria node_modules y el deploy
+# falla con "Asset too large".
+[assets]
+directory = "../dist"
+# Sin esto, /api/* se buscaria como archivo y devolveria 404 en vez de llegar
+# al Worker.
+run_worker_first = ["/api/*"]
+
 # Base de datos de pedidos y precios de referencia.
 [[d1_databases]]
 binding = "DB"
 database_name = "ascua"
+# Crear con:  npx wrangler d1 create ascua
+# y pegar aqui el id que devuelve.
 database_id = "REEMPLAZAR_CON_EL_ID_DE_TU_D1"
 
 [vars]
-# Origen del sitio, para CORS y para las URLs de retorno.
+# Origen del sitio: se usa para las URLs de retorno del pago. En produccion
+# pon el dominio real, porque es lo que la pasarela usa para volver.
 ORIGEN = "http://localhost:5173"
 # Direccion de contacto del comprador (remitente).
 EMAIL_REMITENTE = "Ascua <hola@ascua.test>"
@@ -18,6 +31,10 @@ EMAIL_NOTIFICACIONES = "hola@ascua.test"
 RAZON_SOCIAL = "Ascua"
 RUT = "PENDIENTE"
 DOMICILIO = "PENDIENTE"
+# El sitio y la API se sirven desde el mismo dominio, asi que no hace falta
+# CORS. Si los separas algun dia, pon aqui el dominio del sitio, por ejemplo
+# "https://ascua.cl", y solo ese origen tendra permiso.
+# CORS_ORIGIN = ""
 
 # Secrets (nunca van en este archivo):
 #   wrangler secret put MP_ACCESS_TOKEN
@@ -26,21 +43,3 @@ DOMICILIO = "PENDIENTE"
 #   wrangler secret put FLOW_SECRET_KEY
 #   wrangler secret put RESEND_API_KEY
 #   wrangler secret put CLAVE_PANEL
-
-# Clima actual, para pruebas.
-[env.sandbox.vars]
-ORIGEN = "http://localhost:5173"
-EMAIL_REMITENTE = "Ascua <hola@ascua.test>"
-EMAIL_NOTIFICACIONES = "hola@ascua.test"
-RAZON_SOCIAL = "Ascua"
-RUT = "76.000.000-0"
-DOMICILIO = "Santiago, Chile"
-# Las claves de prueba de Mercado Pago y Flow.
-MP_ACCESS_TOKEN_SANDBOX = "APP_USR-TU_CLAVE_DE_PRUEBA"
-MP_WEBHOOK_SECRET = "TU_SECRETO_DE_PRUEBA"
-FLOW_API_KEY = "TU_API_KEY_DE_PRUEBA"
-FLOW_SECRET_KEY = "TU_SECRET_DE_PRUEBA"
-FLOW_API_KEY_SANDBOX = "TU_API_KEY_DE_PRUEBA"
-FLOW_SECRET_SANDBOX = "TU_SECRET_DE_PRUEBA"
-RESEND_API_KEY = "re_TU_CLAVE_DE_PRUEBA"
-CLAVE_PANEL = "prueba-local-1234"

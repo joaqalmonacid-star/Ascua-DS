@@ -54,6 +54,10 @@ const servidor = createServer(async (req, res) => {
     res.writeHead(200, {
       "content-type": TIPOS[extname(destino).toLowerCase()] || "application/octet-stream",
       "cache-control": "no-cache",
+      // Basicas de seguridad. Las de produccion van en dist/_headers.
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "referrer-policy": "strict-origin-when-cross-origin",
     });
     res.end(cuerpo);
   } catch (e) {

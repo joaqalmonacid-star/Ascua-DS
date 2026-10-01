@@ -10,3 +10,10 @@ Thumbs.db
 api/.dev.vars
 api/.env
 .wrangler/
+
+# Salida de `node scripts/preparar-sitio.mjs`. Se regenera en cada deploy.
+dist/
+
+# wrangler.jsonc lo genera wrangler si no encuentra wrangler.toml.
+wrangler.jsonc
+wrangler.json

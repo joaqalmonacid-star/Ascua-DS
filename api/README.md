@@ -112,12 +112,65 @@ tiene `status: approved`; un pago pendiente o rechazado no registra nada.
 
 ### 5. Desplegar
 
+Un solo despliegue publica el sitio y la API. `wrangler.toml` ya declara
+`[assets] directory = "../dist"`, asi que antes hay que generar `dist/`:
+
 ```bash
-npx wrangler deploy
+node scripts/preparar-sitio.mjs     # desde la raiz del proyecto
+cd api && npx wrangler deploy
 ```
 
 Despues ajusta `ORIGEN` en `wrangler.toml` al dominio real y pon
 `checkout.sandbox` en `false` en `assets/js/config.js`.
+
+## Por que existe `scripts/preparar-sitio.mjs`
+
+El error mas comun al desplegar esto desde GitHub es:
+
+```
+ERROR] Asset too large.
+  file /opt/buildhome/repo/node_modules/workerd/bin/workerd with a size of 128 MiB
+```
+
+Pasa cuando el directorio de assets es la raiz del repositorio. Cloudflare sube
+**todo** lo que hay ahi, y cuando el comando de deploy es `npx wrangler deploy`,
+la propia instalacion de wrangler crea `node_modules/` con `workerd` de 128 MB. El
+archivo sube como si fuera parte del sitio y el deploy se cae.
+
+`preparar-sitio.mjs` copia a `dist/` solo lo que el navegador necesita
+(`*.html`, `assets/`, `data/`, mas `_headers`), y `wrangler.toml` apunta
+`directory` ahi. Es un sitio sin build, asi que "compilar" es copiar: sigue sin
+haber bundler ni paso de compilacion, solo que el resultado se separa de las
+herramientas.
+
+`npm test` verifica que `dist/` no arrastre `node_modules`, `api/` ni `scripts/`,
+y que ningun archivo pase de 25 MiB. Si falla, el deploy fallaria igual.
+
+## Desplegar desde GitHub (Cloudflare Workers Builds)
+
+En el panel de Cloudflare, al conectar el repositorio:
+
+| Campo | Valor |
+| --- | --- |
+| Build command | `node scripts/preparar-sitio.mjs && cd api && npx wrangler deploy` |
+| Deploy command | *(dejar vacio)* |
+| Root directory | *(dejar vacio, la raiz del repo)* |
+
+El build command tiene que incluir `cd api`: sin eso, wrangler no encuentra
+`api/wrangler.toml`, genera uno nuevo que toma la raiz entera como assets, y
+vuelves al error de arriba. `deploy command` se deja vacio a proposito, porque si
+no, wrangler ejecutaria `wrangler deploy` dos veces.
+
+Dos cosas mas que conviene revisar en el panel:
+
+- **Variables**: `ORIGEN`, `EMAIL_REMITENTE`, `EMAIL_NOTIFICACIONES`, `RAZON_SOCIAL`,
+  `RUT`, `DOMICILIO`. En los builds de Cloudflare se cargan como secretos para no
+  depender del `wrangler.toml`.
+- **Bindings**: la base D1 debe estar asociada al Worker con el binding `DB`.
+
+Los secrets de las pasarelas (`wrangler secret put`) no se ponen en el panel de
+builds: se cargan una vez con `npx wrangler secret put` o desde
+Settings → Variables and Secrets.
 
 ## Precios: dos lugares, uno solo real
 

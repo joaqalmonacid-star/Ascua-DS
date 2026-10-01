@@ -10,6 +10,9 @@
   const cfg = window.CONFIG.checkout;
   const Carrito = window.Carrito;
 
+  // apiUrl vacio significa mismo origen, que es el caso normal en produccion.
+  const api = (ruta) => `${cfg.apiUrl.replace(/\/+$/, "")}${ruta}`;
+
   const nodos = {
     form: document.getElementById("form-checkout"),
     lista: document.getElementById("resumen-lista"),
@@ -76,7 +79,7 @@
     nodos.boton.textContent = "Redirigiendo al pago...";
 
     try {
-      const res = await fetch(`${cfg.apiUrl}/api/checkout`, {
+      const res = await fetch(api("/api/checkout"), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

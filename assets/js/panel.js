@@ -10,6 +10,9 @@
   const apiUrl = window.CONFIG.checkout.apiUrl;
   const CLAVE = "ascua:clave-panel";
 
+  // apiUrl vacio = mismo origen, el caso normal en produccion.
+  const api = (ruta) => `${apiUrl.replace(/\/+$/, "")}${ruta}`;
+
   const nodos = {
     clave: document.getElementById("clave"),
     filtro: document.getElementById("filtro-estado"),
@@ -112,7 +115,7 @@
       const params = new URLSearchParams();
       if (nodos.filtro.value) params.set("estado", nodos.filtro.value);
 
-      const res = await fetch(`${apiUrl}/api/pedidos?${params}`, {
+      const res = await fetch(`${api("/api/pedidos")}?${params}`, {
         headers: { authorization: `Bearer ${k}` },
       });
       const r = await res.json();
@@ -143,7 +146,7 @@
     const k = clave();
     try {
       const res = await fetch(
-        `${apiUrl}/api/pedidos/${form.dataset.pedido}/tracking`,
+        api(`/api/pedidos/${form.dataset.pedido}/tracking`),
         {
           method: "POST",
           headers: { "content-type": "application/json", authorization: `Bearer ${k}` },

@@ -1,11 +1,12 @@
 {
-  "name": "tienda-dropshipping",
+  "name": "ascua",
   "version": "0.1.0",
   "private": true,
-  "description": "Catalogo de dropshipping estatico: HTML + CSS + JS, con capa de datos preparada para conectar APIs de proveedores.",
+  "description": "Tienda de dropshipping para Chile: catalogo estatico (HTML + CSS + JS) con checkout en Cloudflare Workers.",
   "scripts": {
     "start": "node scripts/dev-server.mjs",
     "dev": "node scripts/dev-server.mjs",
+    "preparar": "node scripts/preparar-sitio.mjs",
     "sync": "node scripts/sync-productos.mjs",
     "sync:dry": "node scripts/sync-productos.mjs --dry",
     "test": "node scripts/pruebas.mjs",

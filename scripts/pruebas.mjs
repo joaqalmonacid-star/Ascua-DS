@@ -191,6 +191,56 @@ comprobar("conserva el total tras releer", Carrito.cantidadTotal() === 2);
 
 Carrito.vaciar();
 
+console.log("\npreparar-sitio.mjs");
+
+{
+  // Lo que se sube a Cloudflare no puede incluir node_modules: su `workerd` pesa
+  // 128 MB y el deploy falla con "Asset too large". Por eso el sitio se copia a
+  // dist/ en vez de apuntar los assets a la raiz del repo.
+  const { readFile: leer, readdir: listar, stat } = await import("node:fs/promises");
+
+  // dist/ esta en .gitignore, asi que se genera al vuelo: las pruebas tienen que
+  // pasar en un clon recien hecho, antes del primer deploy.
+  const raiz = join(RAIZ, "dist");
+  await import("node:child_process").then(({ execFileSync }) =>
+    execFileSync(process.execPath, [join(RAIZ, "scripts", "preparar-sitio.mjs")], {
+      cwd: RAIZ,
+      stdio: "pipe",
+    })
+  );
+
+  const salida = await stat(raiz).catch(() => null);
+  comprobar("preparar-sitio.mjs genera dist/", salida !== null);
+
+  if (salida) {
+    const contenidos = await listar(raiz);
+    comprobar("dist/ tiene index.html", contenidos.includes("index.html"));
+    comprobar("dist/ tiene _headers", contenidos.includes("_headers"));
+
+    const prohibidos = ["node_modules", "api", "scripts", ".git", "wrangler.toml"];
+    const filtrados = [];
+
+    async function revisar(dir) {
+      for (const e of await listar(dir, { withFileTypes: true })) {
+        if (prohibidos.includes(e.name)) filtrados.push(e.name);
+        // Cloudflare rechaza assets de mas de 25 MiB, asi que tambien se
+        // comprueba el tamano de cada archivo, no solo el total.
+        if (e.isDirectory()) await revisar(join(dir, e.name));
+        else if ((await stat(join(dir, e.name))).size > 25 * 1024 * 1024)
+          filtrados.push(e.name);
+      }
+    }
+    await revisar(raiz);
+
+    comprobar("dist/ no contiene archivos de herramientas", filtrados.length === 0);
+    comprobar("ningun asset supera 25 MiB", filtrados.length === 0);
+  }
+
+  // El nombre del paquete debe seguir a la marca.
+  const pkg = JSON.parse(await leer(join(RAIZ, "package.json"), "utf8"));
+  comprobar("package.json se llama ascua", pkg.name === "ascua");
+}
+
 console.log("\ncoherencia de precios con el Worker");
 {
   // El Worker cobra desde la tabla productos de D1 (api/seed.sql o
